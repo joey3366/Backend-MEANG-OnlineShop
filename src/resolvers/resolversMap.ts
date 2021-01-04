@@ -1,5 +1,5 @@
 import { IResolvers } from 'graphql-tools';
-import mutations from './mutations';
+import mutations from './mutation';
 import query from './query';
 
 const resolversMap: IResolvers = {

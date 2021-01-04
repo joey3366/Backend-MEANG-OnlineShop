@@ -1,0 +1,17 @@
+type User {
+    "identificador unico"
+    id: ID!
+    "nombre del usuario"
+    name: String!
+    "apellido del usuario"
+    lastname: String!
+    "email de la cuenta"
+    email: String!
+    "password de la cuenta"
+    password: String!
+    "fecha de registro"
+    registerDate: String!
+    "solo mayores de 18 años"
+    birthDay: String!
+    role: Role!
+}

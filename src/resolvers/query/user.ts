@@ -1,15 +1,16 @@
-import { COLLECTIONS, MESSAGES } from './../config/constants';
+import { findOneElement, findElements } from './../../lib/db-operations';
+import { COLLECTIONS, MESSAGES } from './../../config/constants';
 import { IResolvers } from 'graphql-tools';
-import Jwt from '../lib/jwt';
+import Jwt from './../../lib/jwt';
 import bcrypt from 'bcrypt';
-const queryResolvers: IResolvers = {
+const resolversUserQuery: IResolvers = {
   Query: {
     async users(_, __, { db }) {
       try {
         return {
           status: true,
           message: 'Datos Cargados Correctamente',
-          users: await db.collection(COLLECTIONS.USERS).find().toArray(),
+          users: await findElements( db, COLLECTIONS.USERS, {} )
         };
       } catch (error) {
         console.log(error);
@@ -22,9 +23,7 @@ const queryResolvers: IResolvers = {
     },
     async login(_, { email, password }, { db }) {
       try {
-        const user = await db
-          .collection(COLLECTIONS.USERS)
-          .findOne({ email });
+        const user = await findOneElement(db, COLLECTIONS.USERS, {email} );
         if (user === null) {
           return {
             status: false,
@@ -76,4 +75,4 @@ const queryResolvers: IResolvers = {
   },
 };
 
-export default queryResolvers;
+export default resolversUserQuery;

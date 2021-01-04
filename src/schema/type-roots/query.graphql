@@ -1,0 +1,5 @@
+type Query{
+    users: ResultUsers
+    login(email: String!, password: String!): ResultLogin
+    me: ResultUser
+}

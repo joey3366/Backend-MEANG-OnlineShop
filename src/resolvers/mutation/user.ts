@@ -1,14 +1,14 @@
-import { COLLECTIONS } from './../config/constants';
+import { asignDocumentId, findOneElement, insertOneElement } from './../../lib/db-operations';
+import { COLLECTIONS } from './../../config/constants';
 import { IResolvers } from 'graphql-tools';
 import bcrypt from 'bcrypt';
 
-const mutations: IResolvers = {
+const resolverUserMutation: IResolvers = {
     Mutation: {
         async register(_, { user }, { db }){
                 
             // Comprobar que el usuario no exista
-            const userChek = await db.collection(COLLECTIONS.USERS)
-            .findOne({email: user.email});
+            const userChek = await findOneElement( db, COLLECTIONS.USERS, {email: user.email} );
 
             if (userChek !== null) {
                 return {
@@ -18,14 +18,8 @@ const mutations: IResolvers = {
                 };
             }
             // Comprobar el ultimo usuario registrado
-            const lastUser = await db.collection(COLLECTIONS.USERS)
-            .find().limit(1).sort({registerDate: -1}).toArray();
 
-            if (lastUser.length === 0) {
-                user.id = 1;
-            }else{
-                user.id = lastUser[0].id + 1;
-            }
+            user.id = await asignDocumentId(db, COLLECTIONS.USERS, { registerDate: -1 });
 
             //Asignar fecha de registro
             user.registerDate = new Date().toISOString();
@@ -33,8 +27,7 @@ const mutations: IResolvers = {
 
             //Guardar datos
 
-            return await db.collection(COLLECTIONS.USERS).
-                        insertOne(user)
+            return await insertOneElement(db, COLLECTIONS.USERS, user)
                         .then(async () => {
                             return {
                                 status: true,
@@ -53,4 +46,4 @@ const mutations: IResolvers = {
     }
 };
 
-export default mutations;
+export default resolverUserMutation;
