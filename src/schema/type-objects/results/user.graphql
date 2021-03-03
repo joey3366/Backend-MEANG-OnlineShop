@@ -2,4 +2,9 @@ type ResultUser implements Result{
     status: Boolean!
     message: String!
     user: User
+<<<<<<< HEAD
 }
+=======
+}
+
+>>>>>>> 03-shop-admin-manage-basic

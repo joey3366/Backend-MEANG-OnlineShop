@@ -1,0 +1,5 @@
+type Genre implements IItem{
+    id: ID!
+    name: String!
+    slug: String!
+}

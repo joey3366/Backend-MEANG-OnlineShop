@@ -1,76 +1,15 @@
-import { findOneElement, findElements } from './../../lib/db-operations';
-import { COLLECTIONS, MESSAGES } from './../../config/constants';
 import { IResolvers } from 'graphql-tools';
-import Jwt from './../../lib/jwt';
-import bcrypt from 'bcrypt';
+import UsersService from '../../services/users.service';
 const resolversUserQuery: IResolvers = {
   Query: {
-    async users(_, __, { db }) {
-      try {
-        return {
-          status: true,
-          message: 'Datos Cargados Correctamente',
-          users: await findElements( db, COLLECTIONS.USERS, {} )
-        };
-      } catch (error) {
-        console.log(error);
-        return {
-          status: false,
-          message: 'Datos No Se Pudieron Cargar Correctamente',
-          users: [],
-        };
-      }
+    async users(_, __, context) {
+      return new UsersService(_, __, context).items();
     },
-    async login(_, { email, password }, { db }) {
-      try {
-        const user = await findOneElement(db, COLLECTIONS.USERS, {email} );
-        if (user === null) {
-          return {
-            status: false,
-            message: `El usuario no se encuentra registado`,
-            token: null,
-          };
-        }
-        const passwordCheck = bcrypt.compareSync(password, user.password);
-        if(passwordCheck !== null){
-          delete user.password;
-          delete user.birthDay;
-          delete user.registerDate;
-        }
-        return {
-          status: true,
-          message:
-            !passwordCheck
-              ? 'Usuario o contraseña incorrectos'
-              : 'Login Correcto',
-          token: 
-            !passwordCheck
-              ? null
-              : new Jwt().sign({ user })
-        };
-      } catch (error) {
-        console.log(error);
-        return {
-          status: false,
-          message: 'Datos No Se Pudieron Cargar Correctamente',
-          user: null,
-        };
-      }
+    async login(_, { email, password }, context) {
+      return new UsersService(_, { user: { email, password}}, context).login();
     },
     me(_,__, { token }){
-      let info = new Jwt().verify(token);
-      if (info === MESSAGES.TOKEN_VERIFICATION_FAILED) {
-        return {
-          status: false,
-          message : info,
-          user: null
-        };
-      }
-      return{
-        status: true,
-        message: 'Usuario Autenticado Correctamente',
-        user: Object.values(info)[0]
-      };
+      return new UsersService(_, __, { token }).auth();
     }
   },
 };
