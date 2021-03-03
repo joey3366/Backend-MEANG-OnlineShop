@@ -1,0 +1,5 @@
+type ResultInfo {
+    page: Int!,
+    total: Int!,
+    itemsPage: Int!
+}

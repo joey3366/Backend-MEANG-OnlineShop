@@ -3,4 +3,5 @@ type ResultGenre implements Result{
     message: String!
     genre: Genre
     genres:[Genre!]
+    info: ResultInfo
 }

@@ -8,6 +8,7 @@ import {
 } from './../lib/db-operations';
 import { IContextData } from './../interfaces/context-data.interface';
 import { findElements } from '../lib/db-operations';
+import { pagination } from '../lib/pagination';
 
 class ResolversOperationsService {
   private variables: IVariables;
@@ -19,18 +20,26 @@ class ResolversOperationsService {
   }
 
   //Listar Elementos
-  protected async list(collection: string, listElements: string) {
+  protected async list(collection: string, listElements: string, page: number = 1, itemsPage: number = 20) {
     try {
+      const paginationData = await pagination(this.getDb(), collection, page, itemsPage);
       return {
         status: true,
         message: `Lista de ${listElements} cargada correctamente`,
-        items: await findElements(this.getDb(), collection),
+        items: await findElements(this.getDb(), collection, {}, paginationData),
+        info: {
+          page: paginationData.page,
+          pages: paginationData.pages,
+          itemsPage: paginationData.itemsPage,
+          total: paginationData.total
+        },
       };
     } catch (error) {
       return {
         status: false,
         message: `Lista no se pudo cargar ${error}`,
         items: null,
+        info: null
       };
     }
   }
