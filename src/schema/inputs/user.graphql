@@ -1,0 +1,14 @@
+input UserInput{
+    id: ID
+    "nombre del usuario"
+    name: String!
+    "apellido del usuario"
+    lastname: String!
+    "email de la cuenta"
+    email: String!
+    "password de la cuenta"
+    password: String
+    "fecha de registro"
+    birthDay: String!
+    role: Role = CLIENT
+}

@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_","ns":"rawg.products_genres"}],"uuid":"5088e39804ff4336ae867c7dab66b518"}

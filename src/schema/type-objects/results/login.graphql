@@ -1,0 +1,6 @@
+type ResultLogin implements Result{
+    status: Boolean!
+    message: String!
+    token: String
+    user: User
+}
