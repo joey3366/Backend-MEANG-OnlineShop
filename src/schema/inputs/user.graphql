@@ -1,6 +1,5 @@
-type User {
-    "identificador unico"
-    id: ID!
+input UserInput{
+    id: ID
     "nombre del usuario"
     name: String!
     "apellido del usuario"
@@ -8,11 +7,9 @@ type User {
     "email de la cuenta"
     email: String!
     "password de la cuenta"
-    password: String!
+    password: String
     "fecha de registro"
-    registerDate: String!
-    "solo mayores de 18 años"
     birthDay: String!
-    role: Role!
+    role: Role = CLIENT
     active: Boolean
 }

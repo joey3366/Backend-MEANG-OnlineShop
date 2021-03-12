@@ -168,6 +168,26 @@ class UsersService extends ResolversOperationsService {
       message: result.message
     };
   }
+
+  async block(){
+    const id = this.getVariables().id;
+    if (!this.checkData(String(id) || '')) {
+      return {
+        status: false,
+        message: 'El id del usuario no se ha especificado correctamente',
+        genre: null,
+      };
+    }
+    const result = await this.update(this.collection, {id}, {active: false}, 'usuario');
+    return{
+      status: result.status,
+      message: (result.status)?'Bloqueado':'No se ha bloqueado'
+    }
+  }
+
+  private checkData(value: string) {
+    return value === '' || value === undefined ? false : true;
+  }
 }
 
 export default UsersService;
