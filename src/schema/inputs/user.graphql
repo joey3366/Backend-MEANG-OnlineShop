@@ -11,4 +11,5 @@ input UserInput{
     "fecha de registro"
     birthDay: String!
     role: Role = CLIENT
+    active: Boolean
 }

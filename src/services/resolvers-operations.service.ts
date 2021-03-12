@@ -1,14 +1,14 @@
-import { Db } from 'mongodb';
-import { IVariables } from './../interfaces/variables.interface';
+import { Db } from "mongodb";
+import { IVariables } from "./../interfaces/variables.interface";
 import {
   findOneElement,
   insertOneElement,
   updateOneElement,
-  deleteOneElement
-} from './../lib/db-operations';
-import { IContextData } from './../interfaces/context-data.interface';
-import { findElements } from '../lib/db-operations';
-import { pagination } from '../lib/pagination';
+  deleteOneElement,
+} from "./../lib/db-operations";
+import { IContextData } from "./../interfaces/context-data.interface";
+import { findElements } from "../lib/db-operations";
+import { pagination } from "../lib/pagination";
 
 class ResolversOperationsService {
   private variables: IVariables;
@@ -20,18 +20,30 @@ class ResolversOperationsService {
   }
 
   //Listar Elementos
-  protected async list(collection: string, listElements: string, page: number = 1, itemsPage: number = 20) {
+  protected async list(
+    collection: string,
+    listElements: string,
+    page: number = 1,
+    itemsPage: number = 20,
+    filter: object = {active: {$ne: false}}
+  ) {
     try {
-      const paginationData = await pagination(this.getDb(), collection, page, itemsPage);
+      const paginationData = await pagination(
+        this.getDb(),
+        collection,
+        page,
+        itemsPage,
+        filter
+      );
       return {
         status: true,
         message: `Lista de ${listElements} cargada correctamente`,
-        items: await findElements(this.getDb(), collection, {}, paginationData),
+        items: await findElements(this.getDb(), collection, filter, paginationData),
         info: {
           page: paginationData.page,
           pages: paginationData.pages,
           itemsPage: paginationData.itemsPage,
-          total: paginationData.total
+          total: paginationData.total,
         },
       };
     } catch (error) {
@@ -39,7 +51,7 @@ class ResolversOperationsService {
         status: false,
         message: `Lista no se pudo cargar ${error}`,
         items: null,
-        info: null
+        info: null,
       };
     }
   }
@@ -111,18 +123,18 @@ class ResolversOperationsService {
         this.getDb(),
         collection,
         filter,
-        objectUpdate    
+        objectUpdate
       ).then((res) => {
         if (res.result.nModified === 1 && res.result.ok) {
           return {
             status: true,
-            message: `El elemento del ${ item } fue actualizado correctamente`,
+            message: `El elemento del ${item} fue actualizado correctamente`,
             item: Object.assign({}, filter, objectUpdate),
           };
         }
         return {
           status: false,
-          message: `El elemento del ${ item } no se ha podido actualizar. Revisa los parametros`,
+          message: `El elemento del ${item} no se ha podido actualizar. Revisa los parametros`,
           item: null,
         };
       });
@@ -135,25 +147,27 @@ class ResolversOperationsService {
     }
   }
 
-  protected async del(collection: string, filter: object, item: string){
+  protected async del(collection: string, filter: object, item: string) {
     try {
-        return await deleteOneElement(this.getDb(), collection, filter).then( res =>{
-            if (res.deletedCount === 1) {
-                return{
-                    status: true,
-                    message: `El genero ${ item } fue eliminado correctamente`
-                };
-            }
-            return{
-                status: false,
-                message: `El genero ${ item } No se ha podido eliminar`
+      return await deleteOneElement(this.getDb(), collection, filter).then(
+        (res) => {
+          if (res.deletedCount === 1) {
+            return {
+              status: true,
+              message: `El ${item} fue eliminado correctamente`,
             };
-        });
-    } catch (error) {
-        return{
+          }
+          return {
             status: false,
-            message: `Ha ocurrido un error: ${ error }`
-        };
+            message: `El ${item} No se ha podido eliminar`,
+          };
+        }
+      );
+    } catch (error) {
+      return {
+        status: false,
+        message: `Ha ocurrido un error: ${error}`,
+      };
     }
   }
 
@@ -165,7 +179,7 @@ class ResolversOperationsService {
     return this.context.db!;
   }
 
-  protected getContext(): IContextData{
+  protected getContext(): IContextData {
     return this.context;
   }
 }

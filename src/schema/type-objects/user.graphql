@@ -14,4 +14,5 @@ type User {
     "solo mayores de 18 años"
     birthDay: String!
     role: Role!
+    active: Boolean
 }
