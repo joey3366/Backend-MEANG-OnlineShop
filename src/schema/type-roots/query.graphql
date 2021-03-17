@@ -4,4 +4,6 @@ type Query{
     me: ResultUser
     genres(page: Int = 1, itemsPage: Int = 20): ResultGenre
     genre(id: ID!): ResultGenre
+    tags(page: Int = 1, itemsPage: Int = 20): ResultTag
+    tag(id: ID!): ResultTag
 }

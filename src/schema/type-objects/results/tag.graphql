@@ -1,0 +1,7 @@
+type ResultTag implements Result{
+    status: Boolean!
+    message: String!
+    tag: Tag
+    tags:[Tag!]
+    info: ResultInfo
+}
