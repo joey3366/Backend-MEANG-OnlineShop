@@ -1,13 +1,14 @@
-import { COLLECTIONS, MESSAGES } from '../config/constants';
-import { IContextData } from '../interfaces/context-data.interface';
+import { COLLECTIONS, EXPIRETIME, MESSAGES } from "../config/constants";
+import { IContextData } from "../interfaces/context-data.interface";
 import {
   asignDocumentId,
   findOneElement,
   insertOneElement,
-} from '../lib/db-operations';
-import Jwt from '../lib/jwt';
-import ResolversOperationsService from './resolvers-operations.service';
-import bcrypt from 'bcrypt';
+} from "../lib/db-operations";
+import Jwt from "../lib/jwt";
+import ResolversOperationsService from "./resolvers-operations.service";
+import bcrypt from "bcrypt";
+import MailService from "./mail.service";
 
 class UsersService extends ResolversOperationsService {
   private collection = COLLECTIONS.USERS;
@@ -19,12 +20,17 @@ class UsersService extends ResolversOperationsService {
   async items() {
     const page = this.getVariables().pagination?.page;
     const itemsPage = this.getVariables().pagination?.itemsPage;
-    const result = await this.list(this.collection, 'usuarios', page, itemsPage);
+    const result = await this.list(
+      this.collection,
+      "usuarios",
+      page,
+      itemsPage
+    );
     return {
       status: result.status,
       message: result.message,
       users: result.items,
-      info: result.info
+      info: result.info,
     };
   }
 
@@ -54,8 +60,8 @@ class UsersService extends ResolversOperationsService {
       return {
         status: passwordCheck,
         message: !passwordCheck
-          ? 'Usuario o contraseña incorrectos'
-          : 'Login Correcto',
+          ? "Usuario o contraseña incorrectos"
+          : "Login Correcto",
         token: !passwordCheck ? null : new Jwt().sign({ user }),
         user: !passwordCheck ? null : user,
       };
@@ -63,7 +69,7 @@ class UsersService extends ResolversOperationsService {
       console.log(error);
       return {
         status: false,
-        message: 'Datos No Se Pudieron Cargar Correctamente',
+        message: "Datos No Se Pudieron Cargar Correctamente",
         user: null,
       };
     }
@@ -81,7 +87,7 @@ class UsersService extends ResolversOperationsService {
     }
     return {
       status: true,
-      message: 'Usuario Autenticado Correctamente',
+      message: "Usuario Autenticado Correctamente",
       user: Object.values(info)[0],
     };
   }
@@ -90,17 +96,21 @@ class UsersService extends ResolversOperationsService {
   async register() {
     const user = this.getVariables().user;
     if (user === null) {
-        return {
-          status: false,
-          message: 'Usuario No definido',
-          user: null
-        };
-    }
-    if (user?.password === null || user?.password === undefined || user?.password === '') {
-      return{
+      return {
         status: false,
-        message: 'Usuario sin contraseña definida',
-        user: null
+        message: "Usuario No definido",
+        user: null,
+      };
+    }
+    if (
+      user?.password === null ||
+      user?.password === undefined ||
+      user?.password === ""
+    ) {
+      return {
+        status: false,
+        message: "Usuario sin contraseña definida",
+        user: null,
       };
     }
     // Comprobar que el usuario no exista
@@ -126,67 +136,111 @@ class UsersService extends ResolversOperationsService {
     user!.password = bcrypt.hashSync(user!.password, 12);
 
     //Guardar datos
-    const result = await this.add(this.collection, user || {}, 'usuario');
-    return{
-        status: result.status,
-        message: result.message,
-        user: result.item
+    const result = await this.add(this.collection, user || {}, "usuario");
+    return {
+      status: result.status,
+      message: result.message,
+      user: result.item,
     };
   }
 
   // Actualizar Usuario
-  async modify(){
+  async modify() {
     const user = this.getVariables().user;
     if (user === null) {
       return {
         status: false,
-        message: 'Usuario No definido',
-        user: null
+        message: "Usuario No definido",
+        user: null,
       };
     }
     const filter = { id: user?.id };
-    const result = await this.update(this.collection, filter, user || {}, 'usuario');
-    return{
-      status: result.status,
-      message: result.message,
-      user: result.item
-    };
-  }
-
-  async delete(){
-    const id = this.getVariables().id;
-    if (id === undefined || id === '') {
-      return{
-        status: false,
-        message: 'ID no definida',
-        user: null
-      };
-    }
-    const result = await this.del(this.collection, { id }, 'usuario');
+    const result = await this.update(
+      this.collection,
+      filter,
+      user || {},
+      "usuario"
+    );
     return {
       status: result.status,
-      message: result.message
+      message: result.message,
+      user: result.item,
     };
   }
 
-  async block(){
+  async delete() {
     const id = this.getVariables().id;
-    if (!this.checkData(String(id) || '')) {
+    if (id === undefined || id === "") {
       return {
         status: false,
-        message: 'El id del usuario no se ha especificado correctamente',
+        message: "ID no definida",
+        user: null,
+      };
+    }
+    const result = await this.del(this.collection, { id }, "usuario");
+    return {
+      status: result.status,
+      message: result.message,
+    };
+  }
+
+  async unBlock(unblock: boolean) {
+    const id = this.getVariables().id;
+    const user = this.getVariables().user;
+    if (!this.checkData(String(id) || "")) {
+      return {
+        status: false,
+        message: "El id del usuario no se ha especificado correctamente",
         genre: null,
       };
     }
-    const result = await this.update(this.collection, {id}, {active: false}, 'usuario');
-    return{
-      status: result.status,
-      message: (result.status)?'Bloqueado':'No se ha bloqueado'
+    if (user?.password === "123456") {
+      return {
+        status: false,
+        message: "No se puede activar ya que no se ha cambiando la contraseña",
+      };
     }
+    let update = { active: unblock };
+    if (unblock) {
+      update = Object.assign(
+        {},
+        { active: true },
+        {
+          birthday: user?.birthDay,
+          password: bcrypt.hashSync(user?.password, 12),
+        }
+      );
+    }
+    const result = await this.update(
+      this.collection,
+      { id },
+      { active: unblock },
+      "usuario"
+    );
+    const action = unblock ? "Desbloqueado" : "Bloqueado";
+    return {
+      status: result.status,
+      message: `${action} correctamente`,
+    };
+  }
+
+  async active(){
+    const id = this.getVariables().user?.id
+    const email = this.getVariables().user?.email || '';
+    if (email === undefined || email === '') {
+      return {
+        status: false,
+        message: 'Email No definido correctamente'
+      }
+    }
+    const token = new Jwt().sign({ user: { id, email } }, EXPIRETIME.H1);
+    const html = `Para activar tu usuario haz clic aca <a href="${process.env.CLIENT_URL}/#/active/${token}"> Clic aca </a>`;
+    const mail = {to: email, subject: 'Activar Usuario', html}
+    return new MailService().send(mail)
   }
 
   private checkData(value: string) {
-    return value === '' || value === undefined ? false : true;
+    return value === "" || value === undefined ? false : true;
   }
 }
 

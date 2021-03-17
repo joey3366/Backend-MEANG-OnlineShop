@@ -1,4 +1,4 @@
-input UserInput{
+input UserInput {
     id: ID
     "nombre del usuario"
     name: String!
