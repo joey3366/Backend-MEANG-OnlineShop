@@ -1,3 +1,4 @@
+import { ACTIVE_VALUES_FILTER } from './../config/constants';
 import { COLLECTIONS, EXPIRETIME, MESSAGES } from "../config/constants";
 import { IContextData } from "../interfaces/context-data.interface";
 import {
@@ -17,14 +18,21 @@ class UsersService extends ResolversOperationsService {
   }
 
   // Lista De Usuarios
-  async items() {
+  async items(active: string = ACTIVE_VALUES_FILTER.ACTIVE) {
+    let filter: object = {active : {$ne: false}}
+    if (active === ACTIVE_VALUES_FILTER.ALL) {
+      filter = {}
+    }else if(active === ACTIVE_VALUES_FILTER.INACTIVE){
+      filter = { active: false}
+    }
     const page = this.getVariables().pagination?.page;
     const itemsPage = this.getVariables().pagination?.itemsPage;
     const result = await this.list(
       this.collection,
       "usuarios",
       page,
-      itemsPage
+      itemsPage,
+      filter
     );
     return {
       status: result.status,
@@ -184,7 +192,7 @@ class UsersService extends ResolversOperationsService {
     };
   }
 
-  async unBlock(unblock: boolean) {
+  async unBlock(unblock: boolean, admin: boolean) {
     const id = this.getVariables().id;
     const user = this.getVariables().user;
     if (!this.checkData(String(id) || "")) {
@@ -201,7 +209,7 @@ class UsersService extends ResolversOperationsService {
       };
     }
     let update = { active: unblock };
-    if (unblock) {
+    if (unblock && !admin) {
       update = Object.assign(
         {},
         { active: true },

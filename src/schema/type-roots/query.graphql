@@ -1,5 +1,5 @@
 type Query{
-    users (page: Int = 1, itemsPage: Int = 20): ResultUsers
+    users (page: Int = 1, itemsPage: Int = 20, active: ActiveFilterEnum = ACTIVE): ResultUsers
     login(email: String!, password: String!): ResultLogin
     me: ResultUser
     genres(page: Int = 1, itemsPage: Int = 20): ResultGenre
