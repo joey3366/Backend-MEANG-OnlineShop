@@ -1,0 +1,4 @@
+type Query{
+    tags(page: Int = 1, itemsPage: Int = 20, active: ActiveFilterEnum = ACTIVE): ResultTag
+    tag(id: ID!): ResultTag
+}

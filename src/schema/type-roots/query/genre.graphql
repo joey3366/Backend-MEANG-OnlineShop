@@ -1,0 +1,4 @@
+type Query{
+    genre(id: ID!): ResultGenre
+    genres(page: Int = 1, itemsPage: Int = 20, active: ActiveFilterEnum = ACTIVE): ResultGenre
+}

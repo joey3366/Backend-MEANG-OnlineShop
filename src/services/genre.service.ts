@@ -1,5 +1,5 @@
 import { findOneElement, asignDocumentId } from './../lib/db-operations';
-import { COLLECTIONS } from './../config/constants';
+import { ACTIVE_VALUES_FILTER, COLLECTIONS } from './../config/constants';
 import { IContextData } from './../interfaces/context-data.interface';
 import ResolversOperationsService from './resolvers-operations.service';
 import slugify from 'slugify';
@@ -10,10 +10,16 @@ class GenresService extends ResolversOperationsService {
     super(root, variables, context);
   }
 
-  async items() {
+  async items(active: string = ACTIVE_VALUES_FILTER.ACTIVE) {
+    let filter: object = { active: {$ne: false}};
+    if (active === ACTIVE_VALUES_FILTER.ALL) {
+      filter = {};
+    } else if (active === ACTIVE_VALUES_FILTER.INACTIVE) {
+      filter = { active: false };
+    }
     const page = this.getVariables().pagination?.page;
     const itemsPage = this.getVariables().pagination?.itemsPage;
-    const result = await this.list(this.collection, 'generos', page, itemsPage);
+    const result = await this.list(this.collection, 'generos', page, itemsPage, filter);
     return {
       status: result.status,
       message: result.message,
@@ -110,7 +116,7 @@ class GenresService extends ResolversOperationsService {
     };
   }
 
-  async block(){
+  async unblock(unblock: boolean = false){
     const id = this.getVariables().id;
     if (!this.checkData(String(id) || '')) {
       return {
@@ -119,10 +125,11 @@ class GenresService extends ResolversOperationsService {
         genre: null,
       };
     }
-    const result = await this.update(this.collection, {id}, {active: false}, 'genero');
+    const result = await this.update(this.collection, { id }, {active: unblock}, 'genero');
+    const action = (unblock) ? 'Desbloqueado' : 'Bloqueado'
     return{
       status: result.status,
-      message: (result.status)?'Bloqueado':'No se ha bloqueado'
+      message: (result.status)? `${action} correctamente`: `No se ha ${action} correctamente `
     }
   }
 

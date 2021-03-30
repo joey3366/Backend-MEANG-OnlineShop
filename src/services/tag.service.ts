@@ -1,5 +1,5 @@
 import slugify from "slugify";
-import { COLLECTIONS } from "../config/constants";
+import { ACTIVE_VALUES_FILTER, COLLECTIONS } from "../config/constants";
 import { IContextData } from "../interfaces/context-data.interface";
 import { asignDocumentId, findOneElement } from "../lib/db-operations";
 import ResolversOperationsService from "./resolvers-operations.service";
@@ -10,10 +10,16 @@ class TagService extends ResolversOperationsService {
     super(root, variables, context);
   }
 
-  async items() {
+  async items(active: string = ACTIVE_VALUES_FILTER.ACTIVE) {
+    let filter: object = { active: {$ne: false}};
+    if (active === ACTIVE_VALUES_FILTER.ALL) {
+      filter = {};
+    } else if (active === ACTIVE_VALUES_FILTER.INACTIVE) {
+      filter = { active: false };
+    }
     const page = this.getVariables().pagination?.page;
     const itemsPage = this.getVariables().pagination?.itemsPage;
-    const result = await this.list(this.collection, "tags", page, itemsPage);
+    const result = await this.list(this.collection, "tags", page, itemsPage, filter);
     return {
       status: result.status,
       message: result.message,
@@ -110,7 +116,7 @@ class TagService extends ResolversOperationsService {
     };
   }
 
-  async block(){
+  async unblock(unblock: boolean = false){
     const id = this.getVariables().id;
     if (!this.checkData(String(id) || '')) {
       return {
@@ -119,10 +125,11 @@ class TagService extends ResolversOperationsService {
         tag: null,
       };
     }
-    const result = await this.update(this.collection, {id}, {active: false}, 'tag');
+    const result = await this.update(this.collection, {id}, {active: unblock}, 'tag');
+    const action = (unblock) ? 'Desbloqueado' : 'Bloqueado'
     return{
       status: result.status,
-      message: (result.status)?'Bloqueado':'No se ha bloqueado'
+      message: (result.status)? `${action} correctamente`: `No se ha ${action} correctamente `
     }
   }
 

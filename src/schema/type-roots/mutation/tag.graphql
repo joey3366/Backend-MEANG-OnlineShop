@@ -1,0 +1,6 @@
+type Mutation {
+    addTag(tag: String!): ResultTag
+    updateTag(id: ID!, tag: String!): ResultTag
+    deleteTag(id: ID!): ResultTag
+    blockTag(id: ID!,  unblock: Boolean): ResultTag
+}

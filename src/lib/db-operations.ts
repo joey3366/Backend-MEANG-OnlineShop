@@ -84,6 +84,24 @@ export const deleteOneElement = async (
 };
 
 //Contar Elementos
-export const countElements = async (database: Db, collection: string, filter: object ={}) => {
+export const countElements = async (
+  database: Db,
+  collection: string,
+  filter: object = {}
+) => {
   return await database.collection(collection).countDocuments(filter);
+};
+
+export const randomItems = async (
+  database: Db,
+  collection: string,
+  filter: object = {},
+  items: number = 10
+): Promise<Array<object>> => {
+  return new Promise(async (resolve) => {
+    const pipeline = [{ $match: filter }, { $sample: { size: items } }];
+    resolve(
+      await database.collection(collection).aggregate(pipeline).toArray()
+    );
+  });
 };
