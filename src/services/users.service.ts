@@ -222,10 +222,10 @@ class UsersService extends ResolversOperationsService {
     const result = await this.update(
       this.collection,
       { id },
-      { active: unblock },
+      update,
       "usuario"
     );
-    const action = unblock ? "Desbloqueado" : "Bloqueado";
+    const action = (unblock) ? "Desbloqueado" : "Bloqueado";
     return {
       status: result.status,
       message: `${action} correctamente`,
