@@ -26,6 +26,10 @@ const resolversShopProductsQuery: IResolvers = {
                 otherFilters = { stock: {$lte: lastUnits}}
             }
             return new ShopProductsService(_, { pagination: { page, itemsPage}} , context).items(active, ['-1'], random, otherFilters);
+        },
+
+        shopProductDetails(_, { id }, context){
+            return new ShopProductsService(_, { id }, context).details();
         }
 
     }
