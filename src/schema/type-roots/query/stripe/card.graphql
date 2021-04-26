@@ -1,0 +1,4 @@
+type Query {
+    card(customer: ID!, card: ID!): ResultStripeCard
+    cards(customer: ID!, limit: Int = 5, startingAfter: ID = "", endingBefore: ID = ""): ResultStripeCard
+}

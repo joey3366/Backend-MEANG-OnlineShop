@@ -1,0 +1,4 @@
+type Query {
+    customer(id: ID!): ResultStripeCustomer
+    customers(limit: Int = 5, startingAfter: ID ="", endingBefore: ID = ""): ResultStripeCustomer
+}
