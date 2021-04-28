@@ -1,3 +1,4 @@
+import { IStripeCharge } from "../../interfaces/stripe/charge.interface";
 import { IPayment } from "../../interfaces/stripe/payment.interface";
 import StripeApi, {
   STRIPE_ACTIONS,
@@ -16,25 +17,29 @@ class StripeChargeService extends StripeApi {
           payment.token
         );
         await new StripeCustomerService().update(payment.customer, {
-          default_source: cardCreate.card?.id
+          default_source: cardCreate.card?.id,
         });
         await new StripeCardService().removeOtherCards(
           payment.customer,
-          cardCreate.card?.id || ''
+          cardCreate.card?.id || ""
         );
-      } else if (payment.token === undefined && userData.customer?.default_source === null) {
+      } else if (
+        payment.token === undefined &&
+        userData.customer?.default_source === null
+      ) {
         return {
-            status: false, 
-            message: 'El cliente no tiene ningún método de pago asignado y no se puede realizar pago'
-        }
+          status: false,
+          message:
+            "El cliente no tiene ningún método de pago asignado y no se puede realizar pago",
+        };
       }
     } else {
-        return {
-            status: false,
-            message: 'El cliente no encontrado y no se puede realizar pago'
-        }
+      return {
+        status: false,
+        message: "El cliente no encontrado y no se puede realizar pago",
+      };
     }
-    delete payment.token
+    delete payment.token;
     payment.amount = Math.round((+payment.amount + Number.EPSILON) * 100) / 100;
     payment.amount *= 100;
     return await this.execute(
@@ -54,6 +59,29 @@ class StripeChargeService extends StripeApi {
 
   private async getClient(customer: string) {
     return new StripeCustomerService().get(customer);
+  }
+
+  async listByCustomer(
+    customer: string,
+    limit: number,
+    startingAfter: string,
+    endingBefore: string
+  ) {
+    const pagination = this.getPagination(startingAfter, endingBefore);
+    return this.execute(STRIPE_OBJECTS.CHARGES, STRIPE_ACTIONS.LIST, {
+      limit,
+      customer,
+      ...pagination,
+    })
+      .then((result: { has_more: boolean, data: Array<IStripeCharge> }) => {
+        return {
+          status: true,
+          message: "Lista de pagos cargada correctamente",
+          hasMore: result.has_more,
+          charges: result.data,
+        };
+      })
+      .catch((error: Error) => this.getError(error));
   }
 }
 

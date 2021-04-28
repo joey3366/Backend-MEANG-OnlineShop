@@ -15,4 +15,5 @@ type User {
     birthDay: String!
     role: Role!
     active: Boolean
+    stripeCustomer: String
 }
