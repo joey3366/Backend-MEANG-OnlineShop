@@ -1,3 +1,6 @@
+import { PubSub } from "apollo-server-express";
+import { Db } from "mongodb";
+import { IStock } from "../../interfaces/stock.interface";
 import { IStripeCharge } from "../../interfaces/stripe/charge.interface";
 import { IPayment } from "../../interfaces/stripe/payment.interface";
 import StripeApi, {
@@ -6,9 +9,15 @@ import StripeApi, {
 } from "../../lib/stripe-api";
 import StripeCardService from "./card.service";
 import StripeCustomerService from "./customer.service";
+import ShopProductsService from "../shop-product.service";
 
 class StripeChargeService extends StripeApi {
-  async order(payment: IPayment) {
+  async order(
+    payment: IPayment,
+    stockChange: Array<IStock>,
+    pubsub: PubSub,
+    db: Db
+  ) {
     const userData = await this.getClient(payment.customer);
     if (userData && userData.status) {
       if (payment.token !== undefined) {
@@ -48,6 +57,10 @@ class StripeChargeService extends StripeApi {
       payment
     )
       .then((result: object) => {
+        new ShopProductsService({}, {}, { db }).updateStock(
+          stockChange,
+          pubsub
+        );
         return {
           status: true,
           message: "Pago realizado correctamente",
@@ -73,7 +86,7 @@ class StripeChargeService extends StripeApi {
       customer,
       ...pagination,
     })
-      .then((result: { has_more: boolean, data: Array<IStripeCharge> }) => {
+      .then((result: { has_more: boolean; data: Array<IStripeCharge> }) => {
         return {
           status: true,
           message: "Lista de pagos cargada correctamente",

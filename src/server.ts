@@ -3,7 +3,7 @@ import cors from 'cors';
 import compression from 'compression';
 import { createServer } from 'http';
 import environment from './config/environments';
-import { ApolloServer } from 'apollo-server-express';
+import { ApolloServer, PubSub } from 'apollo-server-express';
 import schema from './schema';
 import ExpressPlayGround from 'graphql-playground-middleware-express';
 import Database from './lib/database';
@@ -15,6 +15,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 async function init() {
   const app = express();
+  const pubsub = new PubSub();
 
   app.use('*', cors());
   app.use(compression());
@@ -23,14 +24,14 @@ async function init() {
   const db = await database.init();
   const context = async ({req, connection}: IContext) =>{
     const token = (req) ? req.headers.authorization : connection.authorization;
-    return { token, db };
+    return { db, token, pubsub };
   };
 
 
   const server = new ApolloServer({
     schema,
     introspection: true,
-    context
+    context,
   });
   server.applyMiddleware({app});
 
@@ -39,13 +40,13 @@ async function init() {
   }));
 
   const httpServer = createServer(app);
-
+  server.installSubscriptionHandlers(httpServer);
   const PORT = process.env.PORT || 3001;
   httpServer.listen(
     {
       port: PORT,
     },
-    () => console.log(`Servidor Corriendo en https://localhost:${PORT}`)
+    () => {console.log(`Servidor Corriendo en https://localhost:${PORT}/graphql`)}
   );
 }
 

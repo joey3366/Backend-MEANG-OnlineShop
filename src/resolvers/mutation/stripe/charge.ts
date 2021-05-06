@@ -1,11 +1,10 @@
 import { IResolvers } from "graphql-tools";
-import StripeCardService from '../../../services/stripe/card.service';
 import StripeChargeService from "../../../services/stripe/charge.service";
 
 const resolverStripeChargeMutation: IResolvers = {
   Mutation: {
-    async chargeOrder(_, { payment }) {
-      return new StripeChargeService().order(payment);
+    async chargeOrder(_, { payment, stockChange }, { db, pubsub }) {
+      return new StripeChargeService().order(payment, stockChange, pubsub, db);
     }
   },
 };
